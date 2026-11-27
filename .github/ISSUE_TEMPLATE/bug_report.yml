@@ -1,0 +1,30 @@
+name: Bug report
+description: Report a reproducible dashboard scaling issue
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include tokens, internal URLs, private entities or full HA configuration backups."
+  - type: input
+    id: version
+    attributes:
+      label: HA Dashboard Fit version
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Home Assistant version, view type, device, browser/WebView and Fully Kiosk version (if used).
+    validations:
+      required: true
+  - type: input
+    id: parameters
+    attributes:
+      label: URL query parameters only
+      placeholder: "?zoom=0.85&marginTop=-15"
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction, expected and actual result
+    validations:
+      required: true

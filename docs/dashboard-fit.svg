@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="590" viewBox="0 0 1200 590" role="img" aria-labelledby="title desc">
+  <title id="title">HA Dashboard Fit — your dashboard, a better fit</title>
+  <desc id="desc">Illustration of a dark wall tablet with dashboard cards and URL settings zoom 0.85 and marginTop minus 15. Not a screenshot.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1424"/><stop offset="1" stop-color="#172e40"/></linearGradient>
+    <linearGradient id="accent" x2="1" y2="1"><stop stop-color="#76ead2"/><stop offset="1" stop-color="#76baff"/></linearGradient>
+  </defs>
+  <rect width="1200" height="590" rx="24" fill="url(#bg)"/>
+  <g font-family="system-ui, sans-serif">
+    <text x="64" y="90" fill="#85e5d2" font-size="16" font-weight="700" letter-spacing="3">HOME ASSISTANT · WALL TABLETS</text>
+    <text x="64" y="160" fill="#f2f7ff" font-size="52" font-weight="750">HA Dashboard Fit</text>
+    <text x="64" y="205" fill="#acbdcf" font-size="24">Less wasted space.</text>
+    <text x="64" y="240" fill="#acbdcf" font-size="24">More of your home.</text>
+    <rect x="64" y="296" width="390" height="60" rx="14" fill="#213a4c" stroke="#436379"/>
+    <text x="87" y="334" fill="#a6f3df" font-size="19" font-family="monospace">?zoom=0.85&amp;marginTop=-15</text>
+    <text x="64" y="413" fill="#dce8f5" font-size="19">URL-based zoom + spacing</text>
+    <text x="64" y="445" fill="#acbdcf" font-size="17">Built for Fully. Not limited to Fully.</text>
+    <text x="64" y="526" fill="#7e95ac" font-size="16">peacode / Open source · MIT</text>
+    <rect x="510" y="94" width="628" height="402" rx="32" fill="#070d16" stroke="#476074" stroke-width="3"/>
+    <circle cx="526" cy="294" r="4" fill="#587180"/>
+    <rect x="541" y="116" width="565" height="357" rx="15" fill="#132433"/>
+    <text x="563" y="149" fill="#dce8f5" font-size="16" font-weight="650">Home</text>
+    <circle cx="1079" cy="143" r="6" fill="#76ead2"/>
+    <g fill="#21394a">
+      <rect x="559" y="169" width="169" height="124" rx="14"/>
+      <rect x="739" y="169" width="169" height="124" rx="14"/>
+      <rect x="919" y="169" width="169" height="124" rx="14"/>
+      <rect x="559" y="305" width="259" height="148" rx="14"/>
+      <rect x="830" y="305" width="258" height="148" rx="14"/>
+    </g>
+    <g fill="#acbdcf" font-size="14">
+      <text x="578" y="198">LIVING ROOM</text><text x="758" y="198">LIGHTS</text><text x="938" y="198">ENERGY</text>
+      <text x="578" y="335">CLIMATE</text><text x="849" y="335">AT A GLANCE</text>
+    </g>
+    <g fill="#edf7ff" font-size="31" font-weight="650">
+      <text x="578" y="257">21.5°</text><text x="758" y="257">4 on</text><text x="938" y="257">1.2 kW</text>
+    </g>
+    <path d="M580 421L615 410L650 414L685 378L720 387L755 359L794 369" stroke="url(#accent)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="849" y="355" width="219" height="36" rx="10" fill="#34586a"/>
+    <rect x="849" y="402" width="219" height="30" rx="10" fill="#2c4a5c"/>
+    <text x="824" y="535" text-anchor="middle" fill="#7e95ac" font-size="14">Illustration · Sections dashboard</text>
+  </g>
+</svg>

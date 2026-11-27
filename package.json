@@ -1,0 +1,26 @@
+{
+  "name": "ha-dashboard-fit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "URL-based dashboard zoom and spacing for Home Assistant wall tablets",
+  "type": "module",
+  "license": "MIT",
+  "author": "Norman Bauer (https://github.com/norman-bauer)",
+  "homepage": "https://github.com/peacodecom/ha-dashboard-fit",
+  "repository": { "type": "git", "url": "https://github.com/peacodecom/ha-dashboard-fit.git" },
+  "bugs": { "url": "https://github.com/peacodecom/ha-dashboard-fit/issues" },
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test",
+    "lint": "eslint .",
+    "check": "npm run lint && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "esbuild": "0.28.2",
+    "eslint": "10.15.0",
+    "globals": "17.14.0",
+    "happy-dom": "21.0.4"
+  }
+}
