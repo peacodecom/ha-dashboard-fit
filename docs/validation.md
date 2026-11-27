@@ -1,7 +1,14 @@
 # Validation status
 
-This release includes automated checks. Validation on a real Android tablet in
-Fully Kiosk Browser with `zoom=0.85&marginTop=-15` is still pending.
+On 2026-11-27, the maintainer confirmed that installation and dashboard scaling
+work in their setup and switched their local installation to HA Dashboard Fit.
+This confirms the setup smoke test, not every device, layout or checklist item.
+Exact HA/frontend and browser versions were not recorded.
+
+## Confirmed manual checks
+
+- [x] Install HA Dashboard Fit and confirm it runs in the maintainer's setup.
+- [x] Switch the maintainer's local installation to HA Dashboard Fit.
 
 ## Automated checks
 
@@ -15,7 +22,7 @@ Happy DOM does not implement a real CSS layout engine. These checks cannot verif
 pixel alignment, CSS zoom rendering, browser-specific fixed positioning, HA
 dialog behavior or touchscreen hit targets.
 
-## Manual release checklist
+## Additional manual checks
 
 - [ ] Test actual Home Assistant Sections, Masonry and Panel views.
 - [ ] Check Masonry badges/columns, the Panel card and transitions between layouts.

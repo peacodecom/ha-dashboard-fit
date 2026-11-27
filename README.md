@@ -22,10 +22,11 @@ Each device can use its own URL without changing your dashboard configuration.
 and its `?kiosk` URL parameter: hide the HA header/sidebar with Kiosk Mode, then
 fine-tune zoom and spacing with HA Dashboard Fit. See the combined example below.
 
-> **Experimental v0.1.0.** Supports **Sections, Masonry and Panel views**. It relies on internal
-> Home Assistant frontend structure, not a supported HA extension API. Automated
-> DOM tests are included; this version has not yet been validated on a
-> real tablet. The illustration is not a screenshot.
+> Supports **Sections, Masonry and Panel views**. Installation and dashboard
+> scaling have been confirmed on the maintainer's setup. The module relies on
+> internal Home Assistant frontend structure, not a supported HA extension API.
+> See the [validation status](docs/validation.md) for remaining checks.
+> The illustration is not a screenshot.
 
 ## Features
 

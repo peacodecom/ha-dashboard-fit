@@ -11,4 +11,4 @@
 - Single-file distribution, custom-repository HACS metadata, EN/DE documentation,
   automated tests and CI/release workflows.
 
-This first release remains experimental until validated on a real tablet.
+Installation and dashboard scaling confirmed in the maintainer's setup.

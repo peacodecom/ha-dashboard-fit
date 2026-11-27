@@ -1,7 +1,12 @@
 name: Release
 on:
+  push:
+    tags: ["v[0-9]*"]
   release:
     types: [published]
+concurrency:
+  group: release-${{ github.event.release.tag_name || github.ref_name }}
+  cancel-in-progress: false
 permissions:
   contents: read
 jobs:
@@ -18,15 +23,29 @@ jobs:
       - run: npm ci
       - run: npm run check
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
       - run: npm audit --audit-level=low
       - run: git diff --exit-code -- dist
       - name: Generate checksum
         working-directory: dist
         run: sha256sum ha-dashboard-fit.js > SHA256SUMS.txt
+      - name: Create release for a pushed tag
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            args=()
+            if [[ "$RELEASE_TAG" == *-* ]]; then args+=(--prerelease); fi
+            gh release create "$RELEASE_TAG" --verify-tag \
+              --title "HA Dashboard Fit $RELEASE_TAG" \
+              --notes-file CHANGELOG.md "${args[@]}"
+          fi
       - name: Upload release assets
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
         run: gh release upload "$RELEASE_TAG" dist/ha-dashboard-fit.js dist/LICENSE dist/SHA256SUMS.txt --clobber

@@ -1,7 +1,7 @@
 # Releasing
 
 Repository: `peacodecom/ha-dashboard-fit`. Node.js 24+ is required locally.
-Use an authenticated GitHub account with repository/release write permissions.
+Use Git credentials with permission to push commits, workflows and tags.
 Never commit tokens or private Home Assistant configuration.
 
 1. Update `package.json`, lockfile, changelog and versioned installation examples.
@@ -11,10 +11,11 @@ Never commit tokens or private Home Assistant configuration.
 5. Complete the real-device checklist in [validation](validation.md), or clearly
    label remaining limitations. Do not claim device validation from DOM tests.
 6. Push `main`, inspect green CI, then create the matching Git tag and push it.
-7. Publish a GitHub release against that tag. Use a prerelease flag for versions
-   with a prerelease suffix. Note experimental status and any untested hardware.
-8. The release workflow builds, tests, audits, verifies the distribution and uploads
-   `ha-dashboard-fit.js`, `LICENSE` and `SHA256SUMS.txt` to the release.
+7. The tag push starts the release workflow, which builds, tests, audits and
+   verifies the committed distribution before creating a GitHub release using
+   the changelog as its notes. Tags with a prerelease suffix are marked accordingly.
+8. The workflow uploads `ha-dashboard-fit.js`, `LICENSE` and `SHA256SUMS.txt`.
+   It also supports a manually published release against an existing tag.
 9. Inspect the workflow result and download the JavaScript/checksum to verify them.
    The checksum covers the JavaScript asset; it is not a cryptographic signature.
 10. Test Marketplace **Add from link → Dashboard** on HA 2026.11+ and HACS

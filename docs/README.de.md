@@ -23,10 +23,11 @@ der obere Abstand wird kleiner. Jedes Gerät kann seine eigene URL verwenden.
 und dessen URL-Parameter `?kiosk`: Kiosk Mode blendet HA-Kopfzeile und Seitenleiste
 aus, HA Dashboard Fit passt Zoom und Abstände an. Kombiniertes Beispiel unten.
 
-> **Experimentelle Version 0.1.0.** Unterstützt **Sections-, Masonry- und
-> Panel-Ansichten**. Das Modul nutzt interne HA-Frontend-Strukturen, keine
-> stabile HA-Erweiterungsschnittstelle. Automatisierte DOM-Tests sind vorhanden;
-> diese Version wurde noch nicht auf einem echten Tablet geprüft.
+> Unterstützt **Sections-, Masonry- und Panel-Ansichten**. Installation und
+> Dashboard-Skalierung wurden im Setup des Maintainers erfolgreich getestet.
+> Das Modul nutzt interne HA-Frontend-Strukturen, keine stabile
+> HA-Erweiterungsschnittstelle. Offene Prüfpunkte stehen im
+> [Prüfstatus](validation.md).
 > Das Bild ist eine Illustration, kein Screenshot.
 
 ## Funktionen
