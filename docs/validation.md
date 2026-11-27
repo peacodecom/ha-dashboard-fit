@@ -1,14 +1,14 @@
 # Validation status
 
-The original local helper was used by the maintainer for an Android tablet in
-Fully Kiosk Browser with `zoom=0.85&marginTop=-15`. This is historical context,
-**not** a real-device validation claim for the extracted/reworked release.
+This release includes automated checks. Validation on a real Android tablet in
+Fully Kiosk Browser with `zoom=0.85&marginTop=-15` is still pending.
 
 ## Automated checks
 
 `npm run check` runs ESLint, Node's test runner with Happy DOM, and the bundled
 build. Tests cover numeric parsing, style application/restoration, navigation,
-shadow roots, delayed content, fixed-layer registration, nesting, disconnection
+Sections/Masonry/Panel targets, light/shadow view boundaries, delayed content,
+fixed-layer registration, nesting, disconnection
 and metadata. CI also checks dependency advisories and reproducible output.
 
 Happy DOM does not implement a real CSS layout engine. These checks cannot verify
@@ -17,7 +17,8 @@ dialog behavior or touchscreen hit targets.
 
 ## Manual release checklist
 
-- [ ] Install the extracted module on an actual Home Assistant Sections dashboard.
+- [ ] Test actual Home Assistant Sections, Masonry and Panel views.
+- [ ] Check Masonry badges/columns, the Panel card and transitions between layouts.
 - [ ] Record HA/frontend, Android, WebView and Fully Kiosk versions.
 - [ ] Confirm `zoom=0.85&marginTop=-15` with the intended tablet orientation.
 - [ ] Test the recommended Kiosk Mode combination with `?kiosk&zoom=0.85&marginTop=-15`.
@@ -27,7 +28,8 @@ dialog behavior or touchscreen hit targets.
 - [ ] Confirm an unparameterized desktop session is unchanged.
 - [ ] Confirm a fixed background remains viewport-sized.
 - [ ] Test cold start, cache refresh, reconnect and dashboard editing.
-- [ ] Install through HACS after release assets are available.
+- [ ] Test Marketplace installation through **Add from link** (HA 2026.11+).
+- [ ] Test HACS installation through **Custom repositories** (HA 2026.10 and earlier).
 - [ ] Verify GitHub-hosted CI/release runs and downloaded checksums.
 
 Unchecked items remain unverified. Do not infer an HA compatibility matrix from

@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { Window } from "happy-dom";
-import { isWithin, readOptions, startDashboardFit } from "../src/ha-dashboard-fit.js";
+import { findZoomTarget, isWithin, readOptions, startDashboardFit } from "../src/ha-dashboard-fit.js";
 
-function fixture(t, search = "?zoom=0.85&marginTop=-15") {
+function fixture(t, search = "?zoom=0.85&marginTop=-15", layout = "sections", boundary = "direct") {
   const win = new Window({ url: `https://ha.example.test/dashboard-tablet/home${search}` });
   const appendShadow = (parent, name) => {
     const host = win.document.createElement(name);
@@ -15,17 +15,25 @@ function fixture(t, search = "?zoom=0.85&marginTop=-15") {
   for (const name of ["home-assistant", "home-assistant-main", "ha-panel-lovelace", "hui-root"]) {
     root = appendShadow(root, name);
   }
-  const sectionsRoot = appendShadow(root, "hui-sections-view");
+  let layoutParent = root;
+  if (boundary === "shadow") layoutParent = appendShadow(root, "hui-view");
+  else if (boundary === "light") {
+    layoutParent = win.document.createElement("hui-view");
+    root.append(layoutParent);
+  }
+  const sectionsRoot = appendShadow(layoutParent, `hui-${layout}-view`);
   const wrapper = win.document.createElement("div");
-  wrapper.className = "wrapper";
+  if (layout === "sections") wrapper.className = "wrapper";
+  else if (layout === "masonry") wrapper.id = "columns";
   sectionsRoot.append(wrapper);
+  const target = layout === "sections" ? wrapper : sectionsRoot.host;
   const controller = startDashboardFit(win);
   t.after(async () => { controller.disconnect(); await win.happyDOM.close(); });
   const navigate = (query) => {
     win.history.pushState({}, "", `/dashboard-tablet/home${query}`);
     controller.refresh();
   };
-  return { win, root, wrapper, sectionsRoot, controller, navigate, appendShadow };
+  return { win, root, wrapper, target, sectionsRoot, controller, navigate, appendShadow };
 }
 
 test("reads the Fully Kiosk tablet example", () => {
@@ -113,9 +121,9 @@ test("restores styles on the old wrapper when HA replaces it", (t) => {
   assert.equal(replacement.style.zoom, "0.85");
 });
 
-test("restores body offset outside a Sections dashboard", (t) => {
+test("restores body offset outside a supported dashboard", (t) => {
   const { root, wrapper, win, controller } = fixture(t);
-  root.replaceChildren(win.document.createElement("hui-masonry-view"));
+  root.replaceChildren(win.document.createElement("hui-sidebar-view"));
   controller.refresh();
   assert.equal(wrapper.style.zoom, "");
   assert.equal(win.document.body.style.marginTop, "");
@@ -128,6 +136,112 @@ test("supports a hui-view shadow boundary", (t) => {
   appendShadow(root, "hui-view").append(sections);
   controller.refresh();
   assert.equal(wrapper.style.zoom, "0.85");
+});
+
+for (const layout of ["sections", "masonry", "panel"]) {
+  for (const boundary of ["direct", "light", "shadow"]) {
+    test(`${layout} zooms its content target with a ${boundary} view boundary`, (t) => {
+      const { target, root, win } = fixture(t, "?zoom=.85&marginTop=-15&marginLeft=7", layout, boundary);
+      assert.equal(findZoomTarget(root), target);
+      assert.equal(target.style.zoom, "0.85");
+      assert.equal(target.style.marginLeft, "7px");
+      assert.equal(win.document.body.style.marginTop, "-15px");
+      assert.equal(root.host.style.zoom, "");
+    });
+  }
+
+  test(`${layout} discovers fixed layers and leaves outside dialogs unscaled`, (t) => {
+    const { target, sectionsRoot, root, win, navigate, controller, appendShadow } = fixture(t, "?zoom=.85", layout, "light");
+    const content = layout === "sections" ? target : sectionsRoot;
+    const card = appendShadow(content, "test-card");
+    const layer = win.document.createElement("div");
+    layer.setAttribute("data-ha-scale-fixed", "");
+    card.append(layer);
+    const dialog = win.document.createElement("ha-dialog");
+    root.append(dialog);
+    controller.refresh();
+    assert.equal(Number(layer.style.zoom), 1 / .85);
+    assert.equal(dialog.style.zoom, "");
+    assert.equal(isWithin(dialog, target), false);
+    navigate("");
+    assert.equal(target.style.zoom, "");
+    assert.equal(layer.style.zoom, "");
+  });
+
+  test(`${layout} restores pre-existing target styles`, (t) => {
+    const { target, navigate } = fixture(t, "", layout);
+    target.style.setProperty("zoom", "1.1", "important");
+    target.style.marginLeft = "3px";
+    navigate("?zoom=.85&marginLeft=-5");
+    navigate("");
+    assert.equal(target.style.zoom, "1.1");
+    assert.equal(target.style.getPropertyPriority("zoom"), "important");
+    assert.equal(target.style.marginLeft, "3px");
+  });
+}
+
+test("Masonry scales badges and columns together, not the app header", (t) => {
+  const { target, sectionsRoot, wrapper, root, win } = fixture(t, "?zoom=.85", "masonry");
+  const badges = win.document.createElement("hui-view-badges");
+  sectionsRoot.prepend(badges);
+  const header = win.document.createElement("div");
+  header.className = "header";
+  root.prepend(header);
+  assert.equal(isWithin(badges, target), true);
+  assert.equal(isWithin(wrapper, target), true);
+  assert.equal(isWithin(header, target), false);
+  assert.equal(wrapper.style.zoom, "");
+});
+
+test("Panel targets its host even without an inner wrapper", (t) => {
+  const { target, wrapper, sectionsRoot, win, controller } = fixture(t, "?zoom=.85", "panel");
+  wrapper.remove();
+  const card = win.document.createElement("hui-card");
+  sectionsRoot.append(card);
+  controller.refresh();
+  assert.equal(target.style.zoom, "0.85");
+  assert.equal(isWithin(card, target), true);
+  assert.equal(card.style.zoom, "");
+});
+
+test("switching Sections to Masonry to Panel restores each detached target", (t) => {
+  const { root, target, appendShadow, controller, win } = fixture(t, "?zoom=.85&marginTop=-15");
+  let previous = target;
+  for (const layout of ["masonry", "panel"]) {
+    root.replaceChildren();
+    const shadow = appendShadow(root, `hui-${layout}-view`);
+    shadow.append(win.document.createElement("hui-card"));
+    controller.refresh();
+    assert.equal(previous.style.zoom, "");
+    assert.equal(shadow.host.style.zoom, "0.85");
+    assert.equal(win.document.body.style.marginTop, "-15px");
+    previous = shadow.host;
+  }
+});
+
+test("unknown custom layouts do not select nested supported-looking previews", (t) => {
+  const { root, appendShadow, controller, win } = fixture(t);
+  root.replaceChildren();
+  const view = win.document.createElement("hui-view");
+  root.append(view);
+  const custom = win.document.createElement("custom-layout-view");
+  view.append(custom);
+  const nested = appendShadow(custom, "hui-masonry-view");
+  controller.refresh();
+  assert.equal(findZoomTarget(root), null);
+  assert.equal(nested.host.style.zoom, "");
+  assert.equal(win.document.body.style.marginTop, "");
+});
+
+test("a supported layout waits for its shadow root to be attached", (t) => {
+  const { root, controller, win } = fixture(t);
+  const layout = win.document.createElement("hui-masonry-view");
+  root.replaceChildren(layout);
+  controller.refresh();
+  assert.equal(layout.style.zoom, "");
+  layout.attachShadow({ mode: "open" });
+  controller.refresh();
+  assert.equal(layout.style.zoom, "0.85");
 });
 
 test("finds already-connected fixed layers across shadow boundaries", (t) => {

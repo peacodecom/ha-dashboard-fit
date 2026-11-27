@@ -44,6 +44,23 @@ SOFTWARE.
     }
     return false;
   }
+  function findZoomTarget(root, watch = () => {
+  }) {
+    if (!root) return null;
+    const selector = "hui-sections-view, hui-masonry-view, hui-panel-view";
+    const view = root.querySelector("hui-view");
+    const scope = view?.shadowRoot ?? view ?? root;
+    watch(scope);
+    const layout = view ? Array.from(scope.children).find((element) => element.matches(selector)) : scope.querySelector(selector);
+    if (!layout) return null;
+    watch(layout);
+    watch(layout.shadowRoot);
+    if (!layout.shadowRoot) return null;
+    if (layout.localName === "hui-sections-view") {
+      return layout.shadowRoot.querySelector("div.wrapper");
+    }
+    return layout;
+  }
   function startDashboardFit(win = window) {
     const doc = win.document;
     const styles = /* @__PURE__ */ new Map();
@@ -84,13 +101,7 @@ SOFTWARE.
         root = descend(root, selector);
         if (!root) break;
       }
-      let sections = root?.querySelector("hui-sections-view");
-      if (!sections && root) {
-        const viewRoot = descend(root, "hui-view");
-        sections = viewRoot?.querySelector("hui-sections-view");
-      }
-      watch(sections?.shadowRoot);
-      const wrapper = sections?.shadowRoot?.querySelector("div.wrapper");
+      const target = findZoomTarget(root, watch);
       const options = readOptions(win.location.search);
       const desired = /* @__PURE__ */ new Map();
       const set = (element, property, value) => {
@@ -98,23 +109,24 @@ SOFTWARE.
         if (!desired.has(element)) desired.set(element, /* @__PURE__ */ new Map());
         desired.get(element).set(property, String(value));
       };
-      if (wrapper) {
-        set(wrapper, "zoom", options.zoom);
+      if (target) {
+        set(target, "zoom", options.zoom);
         set(doc.body, "margin-top", options.marginTop === null ? null : `${options.marginTop}px`);
-        set(wrapper, "margin-left", options.marginLeft === null ? null : `${options.marginLeft}px`);
+        set(target, "margin-left", options.marginLeft === null ? null : `${options.marginLeft}px`);
         if (options.zoom !== null) {
           const layers = /* @__PURE__ */ new Set();
           const scan = (scope) => {
             watch(scope);
+            if (scope.shadowRoot) scan(scope.shadowRoot);
             for (const element of scope.querySelectorAll("*")) {
               if (element.hasAttribute("data-ha-scale-fixed")) layers.add(element);
               if (element.shadowRoot) scan(element.shadowRoot);
             }
           };
-          scan(wrapper);
+          scan(target);
           for (const layer of eventLayers) {
             if (!layer.isConnected) eventLayers.delete(layer);
-            else if (isWithin(layer, wrapper)) layers.add(layer);
+            else if (isWithin(layer, target) && layer !== target) layers.add(layer);
           }
           for (const layer of layers) {
             let parentFixed = false;

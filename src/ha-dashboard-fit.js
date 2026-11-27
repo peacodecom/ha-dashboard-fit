@@ -25,6 +25,30 @@ export function isWithin(element, ancestor) {
   return false;
 }
 
+export function findZoomTarget(root, watch = () => {}) {
+  if (!root) return null;
+  const selector = "hui-sections-view, hui-masonry-view, hui-panel-view";
+  const view = root.querySelector("hui-view");
+  // Current HA renders hui-view in light DOM; also accept a shadow boundary.
+  const scope = view?.shadowRoot ?? view ?? root;
+  watch(scope);
+  // Inside hui-view, only its actual layout is eligible, never nested card
+  // previews or supported-looking elements inside an unsupported custom view.
+  const layout = view
+    ? Array.from(scope.children).find((element) => element.matches(selector))
+    : scope.querySelector(selector);
+  if (!layout) return null;
+  watch(layout);
+  watch(layout.shadowRoot);
+  if (!layout.shadowRoot) return null;
+  if (layout.localName === "hui-sections-view") {
+    return layout.shadowRoot.querySelector("div.wrapper");
+  }
+  // Masonry's badges are siblings of #columns, and Panel has no common inner
+  // wrapper. Scale those layout hosts to include all their dashboard content.
+  return layout;
+}
+
 export function startDashboardFit(win = window) {
   const doc = win.document;
   const styles = new Map();
@@ -69,14 +93,7 @@ export function startDashboardFit(win = window) {
       root = descend(root, selector);
       if (!root) break;
     }
-    // HA versions may render the view directly or inside hui-view's shadow root.
-    let sections = root?.querySelector("hui-sections-view");
-    if (!sections && root) {
-      const viewRoot = descend(root, "hui-view");
-      sections = viewRoot?.querySelector("hui-sections-view");
-    }
-    watch(sections?.shadowRoot);
-    const wrapper = sections?.shadowRoot?.querySelector("div.wrapper");
+    const target = findZoomTarget(root, watch);
     const options = readOptions(win.location.search);
     const desired = new Map();
     const set = (element, property, value) => {
@@ -85,25 +102,27 @@ export function startDashboardFit(win = window) {
       desired.get(element).set(property, String(value));
     };
 
-    if (wrapper) {
-      set(wrapper, "zoom", options.zoom);
+    if (target) {
+      set(target, "zoom", options.zoom);
       set(doc.body, "margin-top", options.marginTop === null ? null : `${options.marginTop}px`);
-      set(wrapper, "margin-left", options.marginLeft === null ? null : `${options.marginLeft}px`);
+      set(target, "margin-left", options.marginLeft === null ? null : `${options.marginLeft}px`);
 
       if (options.zoom !== null) {
         const layers = new Set();
         // Discover already-connected fixed layers, including inside card shadows.
         const scan = (scope) => {
           watch(scope);
+          // Masonry and Panel targets are themselves shadow hosts.
+          if (scope.shadowRoot) scan(scope.shadowRoot);
           for (const element of scope.querySelectorAll("*")) {
             if (element.hasAttribute("data-ha-scale-fixed")) layers.add(element);
             if (element.shadowRoot) scan(element.shadowRoot);
           }
         };
-        scan(wrapper);
+        scan(target);
         for (const layer of eventLayers) {
           if (!layer.isConnected) eventLayers.delete(layer);
-          else if (isWithin(layer, wrapper)) layers.add(layer);
+          else if (isWithin(layer, target) && layer !== target) layers.add(layer);
         }
         for (const layer of layers) {
           // Nested fixed layers must only cancel the wrapper zoom once.

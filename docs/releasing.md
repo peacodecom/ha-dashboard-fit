@@ -2,7 +2,7 @@
 
 Repository: `peacodecom/ha-dashboard-fit`. Node.js 24+ is required locally.
 Use an authenticated GitHub account with repository/release write permissions.
-Never commit tokens or copy the parent Home Assistant Git history.
+Never commit tokens or private Home Assistant configuration.
 
 1. Update `package.json`, lockfile, changelog and versioned installation examples.
 2. Run `npm ci`, `npm run check` and `npm audit --audit-level=low`.
@@ -17,8 +17,9 @@ Never commit tokens or copy the parent Home Assistant Git history.
    `ha-dashboard-fit.js`, `LICENSE` and `SHA256SUMS.txt` to the release.
 9. Inspect the workflow result and download the JavaScript/checksum to verify them.
    The checksum covers the JavaScript asset; it is not a cryptographic signature.
-10. Test installation through HACS **Custom repositories → Dashboard**. HACS
-    catalog inclusion is a separate process, not performed by this workflow.
+10. Test Marketplace **Add from link → Dashboard** on HA 2026.11+ and HACS
+   **Custom repositories → Dashboard** on earlier versions. Default catalog
+   inclusion is a separate process, not performed by this workflow.
 
 The GitHub Actions token is supplied by GitHub with `contents: write` for the
 release job only. No npm publication or external deployment occurs. For an

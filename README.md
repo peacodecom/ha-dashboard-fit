@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" alt="HA Dashboard Fit logo" width="180">
+</p>
+
 # HA Dashboard Fit
 
 **Your dashboard. Your tablet. A better fit.**
@@ -18,30 +22,48 @@ Each device can use its own URL without changing your dashboard configuration.
 and its `?kiosk` URL parameter: hide the HA header/sidebar with Kiosk Mode, then
 fine-tune zoom and spacing with HA Dashboard Fit. See the combined example below.
 
-> **Experimental v0.1.0.** Supports **Sections views** only. It relies on internal
+> **Experimental v0.1.0.** Supports **Sections, Masonry and Panel views**. It relies on internal
 > Home Assistant frontend structure, not a supported HA extension API. Automated
-> DOM tests are included; this extracted version has not yet been validated on a
+> DOM tests are included; this version has not yet been validated on a
 > real tablet. The illustration is not a screenshot.
 
 ## Features
 
 - Optional `zoom`, `marginTop` and `marginLeft` URL parameters.
-- Scales the Sections wrapper, not the whole application or HA dialog layer.
+- Scales the dashboard content, not the whole application or HA dialog layer.
 - Re-reads options on navigation; restores original inline styles when disabled.
 - Handles delayed loading, view replacement and open shadow roots.
-- Compatible with fixed background layers using the existing `ha-scale` events
+- Supports fixed background layers using the `ha-scale` events
   or the `data-ha-scale-fixed` attribute.
 - No runtime dependencies, backend integration, telemetry or network requests.
 
 ## Install
 
-Choose **one** method. Do not load this together with the old `ha-scale.js` helper;
-both would manage the same styles. No dashboard card needs to be added.
+Install through the Home Assistant Marketplace, HACS or manually.
 
-### HACS custom repository
+### Marketplace — Home Assistant 2026.11 and later
 
-The project is **not listed in the default HACS catalog**. A published GitHub
-release with the JavaScript asset is required for this installation method.
+1. As an administrator, open **Settings → Marketplace** and accept the
+  community-content notice if prompted.
+2. Select **Add from link**. Connect your GitHub account if requested.
+3. Enter `https://github.com/peacodecom/ha-dashboard-fit` under **GitHub link**
+  and select **Add**.
+4. If asked for a type, choose **Dashboard** and confirm.
+5. Open **HA Dashboard Fit**, select **Install** and confirm the version.
+6. The Marketplace normally registers the dashboard resource automatically.
+  If resources are managed in YAML, add this entry under `lovelace.resources`:
+
+  ```yaml
+  url: /local/community/ha-dashboard-fit/ha-dashboard-fit.js
+  type: module
+  ```
+
+Reload the frontend, then add your preferred parameters to the dashboard URL
+as shown below.
+
+See the official [Marketplace instructions](https://www.home-assistant.io/integrations/marketplace/#custom-repositories).
+
+### HACS — Home Assistant 2026.10 and earlier
 
 1. In HACS, open **Custom repositories**.
 2. Add `https://github.com/peacodecom/ha-dashboard-fit` with type
@@ -89,9 +111,9 @@ fragment, not in the resource URL. Existing unrelated parameters are preserved.
 
 | Parameter | Allowed range | Effect |
 | --- | --- | --- |
-| `zoom` | `0.3`–`3.0` | Sections wrapper CSS zoom; `0.85` = 85%, `1` = 100%. |
+| `zoom` | `0.3`–`3.0` | Dashboard content CSS zoom; `0.85` = 85%, `1` = 100%. |
 | `marginTop` | `-500`–`500` | Body top margin in CSS pixels; `-15` shifts upward. |
-| `marginLeft` | `-500`–`500` | Wrapper left margin in CSS pixels. |
+| `marginLeft` | `-500`–`500` | Content target's left margin in CSS pixels. |
 
 All parameters are optional and case-sensitive. Use decimal **points**, not
 commas. Empty, invalid and out-of-range values are ignored. The first value wins
@@ -120,24 +142,43 @@ Kiosk Mode's documentation for its configuration, exceptions and exit options.
 This is a recommended setup, not a claim of automated third-party compatibility
 testing; validate the combination on your tablet.
 
-## Compatibility and limitations
+## Supported layouts and elements
+
+| View / element | Supported | Scaled content |
+| --- | --- | --- |
+| **Sections** (`type: sections`) | Yes | `div.wrapper` inside `hui-sections-view`, including its view header, badges and sections. |
+| **Masonry** (`type: masonry`, or the default cards view) | Yes | `hui-masonry-view` itself, including badges and all card columns. |
+| **Panel** (`type: panel`) | Yes | `hui-panel-view` itself, including its panel card. |
+| Standard and custom cards inside these targets | Inherited | Cards scale with their parent; no individual card-type registration is needed. |
+| Subviews | Same layout rules | Supported when rendered as one of the three layouts above. |
+| Fixed background layers | Opt-in | Inverse zoom through `data-ha-scale-fixed` or the fixed-layer events. |
+| HA app header, sidebar and dialogs outside the content target | Not zoomed | Deliberately excluded from dashboard zoom. |
+| Sidebar layout, custom view layouts, other HA panels and add-on ingress | No | No matching zoom target is selected. |
+
+These are **dashboard view types**, not individual `grid`, `entities`, `tile` or
+other card types. A `grid` card inside a Masonry view still uses the Masonry zoom
+target. Panel view here means the Lovelace layout, not arbitrary HA panels.
+
+### Compatibility and limitations
 
 - A current browser/WebView with **CSS `zoom`** support is required (for example
   Chromium/Android WebView 120+). Browser minimums are not device certification.
-- Only Sections views with HA's `div.wrapper` are targeted. Masonry, panel,
-  subview-specific layouts and other panels are not supported or modified.
-- Home Assistant dialogs outside that wrapper are deliberately not scaled.
+- Only the listed built-in view layouts are targeted; unknown layouts are not
+  guessed or replaced with whole-page zoom.
+- Home Assistant dialogs outside the content target are deliberately not scaled.
   Card-local dialogs and third-party overlays may behave differently.
 - Header/sidebar remain unscaled; `marginTop` offsets the body while a supported
   view is active. Scaling can affect responsive breakpoints and scrolling.
+- Masonry chooses its column count using viewport media queries; reducing zoom
+  does not necessarily add more columns. Panel cards can have their own sizing
+  constraints, so shrinking them may leave free space.
 - There is no guarantee for every HA frontend version or third-party card.
   See [validation status](docs/validation.md).
 
-## Migration, troubleshooting and removal
+## Troubleshooting and removal
 
-See the [usage and integration guide](docs/usage.md) for migration from the local
-helper, fixed-layer integration, cache troubleshooting and complete removal.
-No active Home Assistant files are changed by this development repository.
+See the [usage and integration guide](docs/usage.md) for fixed-layer integration,
+cache troubleshooting and complete removal.
 
 ## Development
 

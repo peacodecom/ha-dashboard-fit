@@ -1,21 +1,7 @@
 # Usage and integration
 
-## Migrating from the local helper
-
-1. Back up your resource entry and old helper file.
-2. Remove the old `ha-scale.js` resource (and any extra `ha-zoom.js` copy).
-3. Install HA Dashboard Fit using one method from the README.
-4. Keep your dashboard URL: `?zoom=0.85&marginTop=-15` remains compatible.
-5. Fully reload the frontend; clear Fully's WebView cache if stale code remains.
-6. Test navigation, header, dialogs, scrolling and touch targets on the tablet.
-
-Do not run both modules simultaneously. Unloading a resource does not undo code
-already running in an open tab; reload that tab. The development repository does
-not install anything or modify active HA configuration automatically.
-
-Unlike the original helper, numeric values must be entirely valid (`0.85foo` is
-not accepted), URL options are re-read, styles are restored when options disappear,
-and body offsets are only applied while a supported Sections wrapper exists.
+Install HA Dashboard Fit as described in the [README](../README.md), then add
+`?zoom=0.85&marginTop=-15` to your dashboard URL to adjust zoom and top spacing.
 
 ## Recommended companion: Kiosk Mode
 
@@ -34,9 +20,9 @@ test the combination on the actual device. Neither companion is required here.
 
 ## Fixed viewport backgrounds
 
-An element **inside the scaled wrapper**, including card shadow roots, can opt
-out of wrapper zoom. It receives an inverse zoom of `1 / zoom`. Elements outside
-the wrapper must not be compensated. Nested registered layers are compensated
+An element **inside the scaled content target**, including card shadow roots, can
+opt out of dashboard zoom. It receives an inverse zoom of `1 / zoom`. Elements
+outside the target must not be compensated. Nested registered layers are compensated
 only at the outermost registered element.
 
 Prefer setting the marker in the element's lifecycle:
@@ -57,17 +43,30 @@ disconnectedCallback() {
 }
 ```
 
-The legacy event names intentionally remain unchanged. The marker permits
-discovery even when the card connects before this module loads. A marked layer
-should not have its own non-default CSS zoom; this API cancels only wrapper zoom,
+The marker permits discovery even when the card connects before this module
+loads. A marked layer should not have its own non-default CSS zoom; this API cancels only dashboard zoom,
 not transforms or other scaled ancestors. Its previous inline zoom is restored
-when the layer leaves the wrapper, disconnects or scaling is disabled. Closed
+when the layer leaves the target, disconnects or scaling is disabled. Closed
 shadow roots cannot be discovered.
 
 ## Runtime behavior
 
-The module follows HA's frontend chain to `hui-sections-view` and its
-`div.wrapper`, with an optional `hui-view` shadow boundary. Child-list mutations
+The module follows HA's frontend chain to the active `hui-view` in light DOM or
+through its optional shadow boundary. It selects one of these content targets:
+
+| Layout element | Zoom / `marginLeft` target | Reason |
+| --- | --- | --- |
+| `hui-sections-view` | Its shadow-root `div.wrapper` | Contains view header, badges and sections. |
+| `hui-masonry-view` | The layout host | Badges are siblings of `#columns`; both must scale together. |
+| `hui-panel-view` | The layout host | Panel renders its card directly, without a shared inner wrapper. |
+
+`marginTop` applies to the body only while a supported target is available.
+The app header, sidebar and external HA dialogs are not zoom targets. Standard
+and custom cards inherit their parent target's zoom, including cards inside open
+shadow roots. Unsupported custom view layouts and sidebar layouts are left alone;
+subviews follow the same three-layout rule. See the [supported-elements table](../README.md#supported-layouts-and-elements).
+
+Child-list mutations
 inside observed roots schedule one refresh per animation frame. A two-second
 fallback while the page is visible discovers late `attachShadow()` calls and URL
 changes that do not emit events. It does not patch browser history or shadow APIs.
@@ -75,8 +74,8 @@ Attributes are not observed, preventing style-change observer loops. A marker
 changed without a child-list mutation is discovered by the fallback.
 
 URL options are checked on `location-changed`, `popstate` and resize as well.
-During zoom, fixed-layer discovery traverses open card shadows in the active
-wrapper. Very large dashboards may incur additional traversal cost. There is no
+During zoom, fixed-layer discovery traverses the target's own shadow root and
+open card shadows. Very large dashboards may incur additional traversal cost. There is no
 continuous animation and no per-card backend subscription.
 
 An optional console API is available:
@@ -94,22 +93,23 @@ are nevertheless unsupported; do not combine competing zoom helpers.
 
 ## Troubleshooting
 
-- **Nothing changes:** verify Sections layout, resource URL/type, network response
+- **Nothing changes:** verify a supported layout, resource URL/type, network response
   and decimal points. Options belong to the dashboard URL, not the resource URL.
-- **Old behavior persists:** remove duplicate/legacy resources and clear browser
+- **An update is not visible:** remove duplicate resource entries and clear browser
   cache, then fully reload. Update the version suffix for manual installs.
 - **Top content is clipped:** reduce the negative `marginTop` or remove it.
 - **Cards or touch controls are too small:** increase `zoom` toward `1`.
 - **Background shrinks with cards:** use the fixed-layer API above.
-- **Dialogs scale unexpectedly:** verify that they live outside the Sections
-  wrapper; card-local overlays need their own compatibility testing.
-- **Other layouts do not scale:** only Sections is supported intentionally.
+- **Dialogs scale unexpectedly:** verify that they live outside the scaled content
+  target; card-local overlays need their own compatibility testing.
+- **Other layouts do not scale:** Sections, Masonry and Panel are supported;
+  custom view layouts, Sidebar and non-Lovelace panels are not.
 - **Regression after HA update:** report HA/frontend, WebView and module versions,
   anonymized query parameters and reproduction steps, not your private config.
 
 ## Uninstall
 
 Remove the URL parameters to disable styling. Remove the resource and uninstall
-via HACS (or delete the manually installed file) to remove the module entirely.
+via the Marketplace or HACS (or delete the manually installed file) to remove the module entirely.
 Reload all open tabs/Fully sessions. No HA helpers, entities or persistent settings
 are created by this project.
